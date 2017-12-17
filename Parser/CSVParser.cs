@@ -8,12 +8,14 @@ using Microsoft.VisualBasic.FileIO;
 using System.Data;
 using Parser.Model;
 using Parser.Mapper;
+using Parser.Configuration;
 
 namespace Parser
 {
     public class CSVParser<T> where T : IMapperEntity
     {
         public IMapper<T> Mapper { get; set; } = new BaseMapper<T>();
+        public CSVConfiguration Configuration { get; set; } = new CSVConfiguration();
 
         public CSVParser()
         {
@@ -27,11 +29,10 @@ namespace Parser
         public IEnumerable<T> ParseCsv(string csv)
         {
             var table = new DataTable();
-            using (var stream = new MemoryStream(Encoding.Default.GetBytes(csv.ToCharArray())))
-            using (var parser = new TextFieldParser(stream))
+            using (var stream = new MemoryStream(Configuration.Encoding.GetBytes(csv.ToCharArray())))
+            using (var parser = new TextFieldParser(stream, Configuration.Encoding))
             {
-                parser.TextFieldType = FieldType.Delimited;
-                parser.SetDelimiters(",");
+                SetTextFieldParser(parser);
 
                 try
                 {
@@ -64,5 +65,12 @@ namespace Parser
             return Mapper.Map(table);
         }
         
+        private void SetTextFieldParser(TextFieldParser parser)
+        {
+            parser.TextFieldType = Configuration.TextFieldType;
+            parser.SetDelimiters(Configuration.Delimiter);
+            parser.TrimWhiteSpace = Configuration.TrimWhiteSpace;
+        }
+
     }
 }
