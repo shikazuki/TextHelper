@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Parser.Model;
+using System.Reflection;
 
 namespace Parser.Mapper
 {
@@ -26,12 +27,8 @@ namespace Parser.Mapper
                     if (!string.IsNullOrEmpty(value))
                     {
                         var prop = properties.Where(p => p.Name == headerName).First();
-                        Type valueType = prop.PropertyType;
-                        var parseValue = Convert.ChangeType(value, valueType);
-                        if (parseValue != null)
-                        {
-                            prop.SetValue(entity, parseValue);
-                        }
+                        entity = SetProperty(entity, prop, value);
+                        
                     }
                 }
             }
@@ -49,6 +46,14 @@ namespace Parser.Mapper
             }
 
             return list;
+        }
+
+        public T SetProperty(T entity, PropertyInfo propertyInfo, string value)
+        {
+            var valueType = propertyInfo.PropertyType;
+            var parseValue = Convert.ChangeType(value, valueType);
+            propertyInfo.SetValue(entity, parseValue);
+            return entity;
         }
     }
 }
